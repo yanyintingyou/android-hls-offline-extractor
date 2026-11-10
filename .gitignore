@@ -1,0 +1,36 @@
+# Local binaries
+keygen
+keytest
+*.o
+
+# App artifacts and native libraries
+*.apk
+*.so
+android.dat
+*.dat
+
+# Keys, dates, and local course mapping
+keys.txt
+m3u8_dates.txt
+dates.txt
+courses.json
+*.key
+
+# Logs and temporary output
+*.log
+process.log
+tmp_*.ts
+*.mp4
+
+# Caches, backups, and extracted data
+raw_all/
+output/
+apk_libs/
+backup*
+sample/
+logs/
+liteav_logs/
+
+# Node
+node_modules/
+.env
