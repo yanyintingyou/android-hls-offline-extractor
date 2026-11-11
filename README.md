@@ -12,9 +12,10 @@ Use this for personal study backups of content you paid for. Do not use it comme
 
 - `keygen.c`: runs on the Android device and calls `KeyManager` to derive a 16-byte AES key for each video.
 - `keytest.c`: single-video debug harness that writes the key to `out.key`.
-- `batch_process.js`: decrypts segments in m3u8 order, concatenates them, and remuxes to MP4 with ffmpeg.
-- `verify_output.js`: checks that each output exists and compares its duration with the metadata.
+- `batch_process.js`: decrypts segments in m3u8 order, concatenates them, and remuxes to MP4 with ffmpeg. Reads `OUT`, `TARGET_COURSES`, and `LOG` from the environment and finds existing outputs recursively.
+- `verify_output.js`: checks that each output exists and compares its duration with the metadata. Accepts the same `OUT` and `TARGET_COURSES` values.
 - `courses.example.json`: sample course ID to name mapping. Copy it to `courses.json` and add your own entries.
+- `docs/chapter-organizing.md`: how to group finished files by textbook chapter without breaking re-runs.
 
 ## Requirements
 
@@ -87,10 +88,27 @@ node batch_process.js
 node verify_output.js
 ```
 
-Output goes to `output/<course name>/<video_id>_<video name>.mp4`. `batch_process.js` skips existing outputs. `verify_output.js` reports `DURATION` when the output and metadata differ by more than 10 seconds.
+By default, output goes to `output/`. Set `OUT` and `TARGET_COURSES` to use another library and a subset:
+
+```bash
+OUT=/path/to/videos TARGET_COURSES=YOUR_COURSE_ID node batch_process.js
+OUT=/path/to/videos TARGET_COURSES=YOUR_COURSE_ID node verify_output.js
+```
+
+On PowerShell:
+
+```powershell
+$env:OUT='D:\videos'; $env:TARGET_COURSES='YOUR_COURSE_ID'; node batch_process.js
+```
+
+Output goes to `<OUT>/<course name>/<video_id>_<video name>.mp4`. Files may be reorganized into chapter subfolders; both scripts find existing outputs recursively. `verify_output.js` reports `DURATION` when the output and metadata differ by more than 10 seconds.
+
+## Organize by chapter
+
+Finished files can be grouped by textbook chapter. See [chapter organization](docs/chapter-organizing.md). The scripts do not require a flat directory; keep `video_id` in filenames so re-runs can skip organized outputs.
 
 ## Notes
 
-- Keep `android.dat`, `libsaasCorePlayer.so`, APK files, `keys.txt`, `m3u8_dates.txt`, `courses.json`, `raw_all/`, and `output/` out of the repository. `.gitignore` covers these paths.
+- Keep `android.dat`, `libsaasCorePlayer.so`, APK files, `keys.txt`, `m3u8_dates.txt`, `courses.json`, chapter mapping JSON, CSV indexes, `raw_all/`, and `output/` out of the repository. `.gitignore` covers these paths.
 - The `/data/local/tmp/keytest` paths in `keygen.c` and `keytest.c` are temporary device paths. Change them if needed.
 - The code depends on the target app's current `KeyManager` symbols and arguments. After an app update, confirm the symbols and signature check again.

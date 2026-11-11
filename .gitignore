@@ -1,4 +1,4 @@
-# Local binaries
+# Local binaries and build output
 keygen
 keytest
 *.o
@@ -8,29 +8,66 @@ keytest
 *.so
 android.dat
 *.dat
+apk_libs/
 
 # Keys, dates, and local course mapping
 keys.txt
-m3u8_dates.txt
-dates.txt
+keys.txt*
+m3u8_dates.txt*
+dates.txt*
 courses.json
 *.key
+
+# Local chapter mapping and indexes
+chapters-*.json
+章节索引.csv
+*.csv
 
 # Logs and temporary output
 *.log
 process.log
 tmp_*.ts
 *.mp4
-
-# Caches, backups, and extracted data
 raw_all/
+raw_probe/
 output/
-apk_libs/
-backup*
 sample/
 logs/
 liteav_logs/
 
-# Node
+# Backups and extracted/private data
+backup*
+bak_head.bin
+descript.xml
+keyurl.txt
+license_*
+zl.ab
+screen_backup.png
+*.strings.txt
+mmkv_strings.txt
+logcat_app.txt
+*.hls
+*.m3u8
+
+# Local notes with private or app-specific details
+SOP*.md
+分章整理规范.md
+
+# Local investigation scripts and artifacts
+*.py
+*.pyc
+__pycache__/
+*.asm
+brute.js
+decrypt_concat.js
+jadx_*
+
+# Local device file lists
+local_ids.txt
+remote_*.txt
+*_ids.txt
+videos_sorted.txt
+
+# Caches
 node_modules/
 .env

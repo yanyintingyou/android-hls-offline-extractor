@@ -4,8 +4,11 @@ const crypto = require('crypto');
 const { spawn, execFileSync } = require('child_process');
 
 const ROOT = 'raw_all';
-const OUT = 'output';
-const LOG = 'process.log';
+const OUT = process.env.OUT || 'output';
+const LOG = process.env.LOG || 'process.log';
+const TARGET_COURSES = new Set(
+  (process.env.TARGET_COURSES || '').split(',').map(s => s.trim()).filter(Boolean)
+);
 
 const courses = JSON.parse(fs.readFileSync('courses.json', 'utf8'));
 const keys = {};
@@ -30,6 +33,33 @@ function run(cmd, args) {
     p.on('close', code => code === 0 ? resolve() : reject(new Error(`${cmd} exit ${code}: ${err.slice(-500)}`)));
   });
 }
+function listMp4(dir) {
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...listMp4(p));
+    else if (e.name.endsWith('.mp4')) out.push(p);
+  }
+  return out;
+}
+function videoIdOf(file) {
+  const m = path.basename(file).match(/^(?:\d{2}_)?(\d+)_/);
+  return m ? m[1] : null;
+}
+const indexes = new Map();
+function findOutput(courseName, videoId) {
+  const dir = path.join(OUT, sanitize(courseName));
+  if (!indexes.has(dir)) {
+    const idx = new Map();
+    for (const p of listMp4(dir)) {
+      const id = videoIdOf(p);
+      if (id && !idx.has(id)) idx.set(id, p);
+    }
+    indexes.set(dir, idx);
+  }
+  return indexes.get(dir).get(String(videoId)) || null;
+}
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -47,6 +77,10 @@ function run(cmd, args) {
       fail++;
       continue;
     }
+    if (TARGET_COURSES.size && !TARGET_COURSES.has(String(j.course_id))) {
+      skip++;
+      continue;
+    }
     const uuid = j.url;
     const m3u8Name = `${uuid}_0.m3u8`;
     const m3u8Path = path.join(ROOT, m3u8Name);
@@ -61,7 +95,8 @@ function run(cmd, args) {
       skip++;
       continue;
     }
-    if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1024) {
+    const existing = findOutput(course, j.video_id);
+    if (existing && fs.statSync(existing).size > 1024) {
       ok++;
       continue;
     }
